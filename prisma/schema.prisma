@@ -174,23 +174,6 @@ model Contact {
   @@unique([userId, contactId])
 }
 
-// Enums
-enum ChatType {
-  DIRECT
-  GROUP
-}
-
-enum ChatRole {
-  ADMIN
-  PARTICIPANT
-}
-
-enum MessageType {
-  TEXT
-  IMAGE
-  VIDEO
-  AUDIO
-  DOCUMENT
-  LOCATION
-  CONTACT
-}
+// Chat types: "DIRECT", "GROUP"
+// Chat roles: "ADMIN", "PARTICIPANT"
+// Message types: "TEXT", "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "LOCATION", "CONTACT"

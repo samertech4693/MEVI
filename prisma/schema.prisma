@@ -114,7 +114,7 @@ model ChatParticipant {
 model Message {
   id          String       @id @default(cuid())
   content     String
-  type        MessageType  @default(TEXT)
+  type        String       @default("TEXT")
   senderId    String
   chatId      String
   mediaUrl    String?      // For media messages

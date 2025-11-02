@@ -96,9 +96,7 @@ export function ChatSidebar({ selectedChat, onChatSelect, currentUserId }: ChatS
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
-            <MessageCirclePlus className="h-5 w-5" />
-          </Button>
+          <NewChatDialog />
           <Button variant="ghost" size="icon">
             <MoreVertical className="h-5 w-5" />
           </Button>

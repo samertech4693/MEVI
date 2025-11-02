@@ -100,7 +100,7 @@ model ChatParticipant {
   id        String            @id @default(cuid())
   chatId    String
   userId    String
-  role      ChatRole          @default(PARTICIPANT)
+  role      String            @default("PARTICIPANT")
   joinedAt  DateTime          @default(now())
   lastRead  DateTime?         // For read receipts
 

@@ -84,7 +84,7 @@ model User {
 // Chats (direct or group)
 model Chat {
   id          String   @id @default(cuid())
-  type        ChatType @default(DIRECT)
+  type        String     @default("DIRECT")
   name        String?  // For group chats
   description String?  // For group chats
   picture     String?  // Group chat picture

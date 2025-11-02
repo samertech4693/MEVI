@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User accounts and authentication
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// User sessions
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Email verification tokens
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Users
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For email/password authentication
+  phone         String?   // Optional phone number
+  phoneVerified Boolean   @default(false)
+  username      String?   @unique // @handle for sharing
+  bio           String?
+  status        String?   // Custom status message
+  lastSeen      DateTime  @default(now())
+  isOnline      Boolean   @default(false)
+
+  // Privacy settings
+  profilePictureVisibility String @default("everyone") // everyone, contacts, nobody
+  lastSeenVisibility       String @default("everyone") // everyone, contacts, nobody
+  onlineStatusVisibility   String @default("everyone") // everyone, contacts, nobody
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  sentMessages     Message[]       @relation("MessageSender")
+  reactions        Reaction[]
+  chatParticipants ChatParticipant[]
+  contacts         Contact[]      @relation("ContactUser")
+  addedContacts    Contact[]      @relation("AddedBy")
+}
+
+// Chats (direct or group)
+model Chat {
+  id          String   @id @default(cuid())
+  type        ChatType @default(DIRECT)
+  name        String?  // For group chats
+  description String?  // For group chats
+  picture     String?  // Group chat picture
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages      Message[]
+  participants  ChatParticipant[]
+}
+
+// Chat participants
+model ChatParticipant {
+  id        String            @id @default(cuid())
+  chatId    String
+  userId    String
+  role      ChatRole          @default(PARTICIPANT)
+  joinedAt  DateTime          @default(now())
+  lastRead  DateTime?         // For read receipts
+
+  chat    Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+}
+
+// Messages
+model Message {
+  id          String       @id @default(cuid())
+  content     String       @db.Text
+  type        MessageType  @default(TEXT)
+  senderId    String
+  chatId      String
+  mediaUrl    String?      // For media messages
+  mediaType   String?      // For media messages
+  replyToId   String?      // For reply functionality
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  sender     User           @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  chat       Chat           @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  replyTo    Message?       @relation("MessageReply", fields: [replyToId], references: [id])
+  replies    Message[]      @relation("MessageReply")
+  reactions  Reaction[]
+  readReceipts ReadReceipt[]
+}
+
+// Message reactions
+model Reaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  messageId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+}
+
+// Read receipts for messages
+model ReadReceipt {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+}
+
+// Contacts
+model Contact {
+  id          String      @id @default(cuid())
+  userId      String      // User who added this contact
+  contactId   String      // The contact user
+  nickname    String?     // Custom nickname for the contact
+  isFavorite  Boolean     @default(false)
+  isBlocked   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  user     User @relation("ContactUser", fields: [userId], references: [id], onDelete: Cascade)
+  contact  User @relation("AddedBy", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contactId])
+}
+
+// Enums
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+enum ChatRole {
+  ADMIN
+  PARTICIPANT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  LOCATION
+  CONTACT
+}

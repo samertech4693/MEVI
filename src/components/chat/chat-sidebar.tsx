@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, MoreVertical, MessageCirclePlus } from 'lucide-react'
 import { ChatWithParticipants } from '@/types'
+import { NewChatDialog } from './new-chat-dialog'
 
 interface ChatSidebarProps {
   selectedChat: string | null

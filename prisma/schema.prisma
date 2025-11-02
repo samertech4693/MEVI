@@ -113,7 +113,7 @@ model ChatParticipant {
 // Messages
 model Message {
   id          String       @id @default(cuid())
-  content     String       @db.Text
+  content     String
   type        MessageType  @default(TEXT)
   senderId    String
   chatId      String
